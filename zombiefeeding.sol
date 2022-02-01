@@ -1,38 +1,43 @@
 pragma solidity ^0.4.19;
 
-contract ZombieFactory {
+import "./zombiefactory.sol";
 
-    event NewZombie(uint zombieId, string name, uint dna);
+// interfaz de cryptoKitties
+contract KittyInterface {
+  function getKitty(uint256 _id) external view returns (
+    bool isGestating,
+    bool isReady,
+    uint256 cooldownIndex,
+    uint256 nextActionAt,
+    uint256 siringWithId,
+    uint256 birthTime,
+    uint256 matronId,
+    uint256 sireId,
+    uint256 generation,
+    uint256 genes
+  );
+}
 
-    uint dnaDigits = 16;
-    uint dnaModulus = 10 ** dnaDigits;
+contract ZombieFeeding is ZombieFactory {
 
-    struct Zombie {
-        string name;
-        uint dna;
+    address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d; // CryptoKitties address
+    KittyInterface kittyContract = KittyInterface(ckAddress);       // inicializamos la interfaz
+    
+    // un zombie se alimenta de un target combinando ambos dna
+    function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) public {
+        require(msg.sender == zombieToOwner[_zombieId]); // Cheqeamos que somos el dueño del Zombie
+        Zombie storage myZombie = zombies[_zombieId]:   // Obtenemos el zombie a partit de su Id
+        _targetDna = _targetDna % dnaModulus;
+        uint newDna = (myZombie.dna + _targetDna) / 2;
+        if(keccak256(_species) == keccak256("kitty")){
+            newDna = newDna - newDna % 100 + 99;        // si es kitty le ponemos 99 en los ultimos digitos 
+        }
+        _createZombie("NoName", newDna);
     }
-
-    Zombie[] public zombies;
-
-    mapping (uint => address) public zombieToOwner;
-    mapping (address => uint) ownerZombieCount;
-
-    function _createZombie(string _name, uint _dna) private {
-        uint id = zombies.push(Zombie(_name, _dna)) - 1;
-        zombieToOwner[id] = msg.sender;
-        ownerZombieCount[msg.sender]++;
-        NewZombie(id, _name, _dna);
+    
+    function feedOnKitty(uint _zombieId, uint _kittyId) public {
+        uint kittyDna;
+        (,,,,,,,,,kittyDna) = getKitty(_kittyId); // devuelve 10 valores solo necesitamos el ultimo
+        feedAndMultiply(_zombieId, kittyDna, "kitty"); // una vez come gatos _species = kitty
     }
-
-    function _generateRandomDna(string _str) private view returns (uint) {
-        uint rand = uint(keccak256(_str));
-        return rand % dnaModulus;
-    }
-
-    function createRandomZombie(string _name) public {
-        require(ownerZombieCount[msg.sender] == 0);
-        uint randDna = _generateRandomDna(_name);
-        _createZombie(_name, randDna);
-    }
-
 }

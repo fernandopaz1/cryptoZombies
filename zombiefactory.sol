@@ -10,6 +10,7 @@ contract ZombieFactory is Ownable {
     // hay 10^16 zombies diferentes
     uint dnaDigits = 16;
     uint dnaModulus = 10 ** dnaDigits;
+    uint cooldownTime = 1 days;
 
     // las operaciones y el almacenamiento cuesta gas, por eso debemos optimizar los tipos de datos en los structs
     // poniendo cerca los tipos de datos similares estaremos ahorrando gas
@@ -30,7 +31,7 @@ contract ZombieFactory is Ownable {
     // triggerea el evento NewZombie
     // con internal permitimos que sea usada por contratos que heredan de este
     function _createZombie(string _name, uint _dna) internal {
-        uint id = zombies.push(Zombie(_name, _dna)) - 1;
+        uint id = zombies.push(Zombie(_name, _dna, 1, uint32(now + cooldownTime))) - 1;
         zombieToOwner[id] = msg.sender;
         ownerZombieCount[msg.sender]++;
         // Este evento comunica a la interfaz de usuario que

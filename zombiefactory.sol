@@ -1,6 +1,8 @@
 pragma solidity ^0.4.19;
 
-contract ZombieFactory {
+import "./ownable.sol"
+
+contract ZombieFactory is Ownable {
 
     event NewZombie(uint zombieId, string name, uint dna);
 
@@ -9,9 +11,13 @@ contract ZombieFactory {
     uint dnaDigits = 16;
     uint dnaModulus = 10 ** dnaDigits;
 
+    // las operaciones y el almacenamiento cuesta gas, por eso debemos optimizar los tipos de datos en los structs
+    // poniendo cerca los tipos de datos similares estaremos ahorrando gas
     struct Zombie {
         string name;
         uint dna;
+        uint32 level;
+        uint32 readyTime;
     }
 
     Zombie[] public zombies;

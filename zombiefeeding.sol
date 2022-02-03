@@ -20,8 +20,14 @@ contract KittyInterface {
 
 contract ZombieFeeding is ZombieFactory {
 
-    address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d; // CryptoKitties address
-    KittyInterface kittyContract = KittyInterface(ckAddress);       // inicializamos la interfaz
+    KittyInterface kittyContract;
+    // Los contratos en ethereum son inmutables por lo que harcodear la direccion
+    // puede hacer que apuntemos en un futuro a un contrato dañado.
+    // Es importante poder cambiar estas variables.
+    // con onlyOwner herdeado de owneabel aplicamos el modifier que verifica que somos los dueños
+    function setKittyContractAddress(address _address) external onlyOwner{
+      kittyContract = KittyInterface(_address);
+    }       
     
     // un zombie se alimenta de un target combinando ambos dna
     function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) public {

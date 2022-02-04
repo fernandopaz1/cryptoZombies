@@ -4,6 +4,8 @@ import "./zombiefeeding.sol";
 
 contract ZombieHelper is ZombieFeeding {
 
+    uint levelUpFee = 0.001 ether;
+
     // Este modificado añade el requerimiento de que el zombie tenga un nivel mayor
     // al que pasamos por parametro
     modifier aboveLevel(uint _level, uint _zombieId) {
@@ -22,6 +24,11 @@ contract ZombieHelper is ZombieFeeding {
         zombies[_zombieId].dna = _newDna;
     }
 
+    function levelUp(uint _zombieId) external payable {
+        require(msg.value == levelUpFee);
+        zombies[_zombieId].level++;
+    }
+
     // las funciones tipo view no cuestan gas, ya que la idea es que no se hagan
     // operaciones de escritura ni calculos en estas, serian solo de lectura lo 
     // cual no cuesta nada
@@ -36,5 +43,17 @@ contract ZombieHelper is ZombieFeeding {
             }
         }
         return result;
+    }
+
+    // si vamos a recibir pagos queremos que owner pueda trasferir el balance total
+    // a su cuenta
+    function withdraw() external onlyOwner {
+        owner.transfer(this.balance);
+    }
+
+    // no nos conviene dejar el fee como constante ya que 
+    // los precios pueden cambiar.
+    function setLevelUpFee(uint _fee) external onlyOwner {
+        levelUpFee = _fee;
     }
 }
